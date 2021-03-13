@@ -5,7 +5,6 @@ const todoList = document.querySelector('.todo-list')
 const todoFilter = document.querySelector('.todo-filter')
 
 // Event Listeners
-// document.addEventListener('DOMContentLoaded', renderTodos)
 document.addEventListener('DOMContentLoaded', getLocalTodos)
 todoButton.addEventListener('click', addTodo)
 todoList.addEventListener('click', deleteCheck)
@@ -14,7 +13,9 @@ todoFilter.addEventListener('click', filter)
 // Functions
 function addTodo(e) {
   e.preventDefault()
-  if (todoInput.value.trim().length == 0) {
+
+  let msg = todoInput.value.trim()
+  if (msg.length == 0) {
     todoInput.value = ''
     return
   }
@@ -24,10 +25,10 @@ function addTodo(e) {
   // Create paragraph
   let text = document.createElement('p')
   text.classList.add('todo-text')
-  text.innerText = todoInput.value
+  text.innerText = msg
   item.append(text)
   // Save todo item to LocalStorage
-  saveLocalTodos(todoInput.value)
+  saveLocalTodos(msg)
   // Create complete btn
   let completeBtn = document.createElement('button')
   completeBtn.classList.add('complete-btn')
@@ -69,6 +70,9 @@ function deleteCheck(e) {
   // Check mark
   if (target.classList.contains('complete-btn')) {
     item.classList.toggle('is-completed')
+
+    saveLocalTodos(item.firstChild.innerText, item.classList.contains('is-completed'))
+    removeLocalTodos(item.firstChild.innerText)
   }
 }
 
@@ -99,7 +103,7 @@ function filter() {
   });
 }
 
-function saveLocalTodos(todo) {
+function saveLocalTodos(msg, completed = false) {
   let todos
   if (localStorage.getItem('todos') === null) {
     todos = []
@@ -107,7 +111,7 @@ function saveLocalTodos(todo) {
     todos = JSON.parse(localStorage.getItem('todos'))
   }
 
-  todos.push(todo)
+  todos.push({ msg, completed })
   localStorage.setItem('todos', JSON.stringify(todos))
 }
 
@@ -123,10 +127,13 @@ function getLocalTodos() {
     // Create list item
     let item = document.createElement('li')
     item.classList.add('todo-item')
+    if (todo.completed) {
+      item.classList.add('is-completed')
+    }
     // Create paragraph
     let text = document.createElement('p')
     text.classList.add('todo-text')
-    text.innerText = todo
+    text.innerText = todo.msg
     item.append(text)
     // Create complete btn
     let completeBtn = document.createElement('button')
@@ -159,7 +166,9 @@ function removeLocalTodos(todoText) {
     todos = JSON.parse(localStorage.getItem('todos'))
   }
 
-  const todosIndex = todos.indexOf(todoText)
+  let todo = todos.find(todo => todo.msg == todoText)
+  let todosIndex = todos.indexOf(todo)
+
   todos.splice(todosIndex, 1)
   localStorage.setItem('todos', JSON.stringify(todos))
 }
